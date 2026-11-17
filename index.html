@@ -1,7 +1,157 @@
 <!DOCTYPE html>
 <html lang="en-GB">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MH Meats</title></head>
-<body style="font-family:Georgia,serif;text-align:center;padding:3rem;background:#F8F3E9;color:#672B35">
-<h1>MH Meats</h1><p>Website coming soon.</p>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MH Meats | Kosher Butcher Shop, Manchester</title>
+<meta name="description" content="MH Meats is a kosher butcher shop based in Manchester.">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Lato:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--burgundy:#672B35;--beige:#E9D9BF;--walnut:#694936;--cream:#F8F3E9;--ink:#2E1D17;
+--display:"Alfa Slab One",Rockwell,Georgia,serif;--serif:"Lora",Georgia,serif;--sans:"Lato",system-ui,-apple-system,Arial,sans-serif;
+--paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .28 0 0 0 0 .14 0 0 0 .55 -.12'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='240'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .55' numOctaves='3' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .03 0 0 0 0 .02 .9 0 0 0 -.2'/%3E%3C/filter%3E%3Crect width='400' height='240' filter='url(%23w)'/%3E%3C/svg%3E");
+padding-top:env(safe-area-inset-top,0)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background-color:var(--cream);background-image:var(--paper);color:var(--ink);font:17px/1.75 var(--serif)}
+h1,h2,h3{font-family:var(--display);font-weight:400;line-height:1.2;margin:0 0 .5em;color:var(--burgundy)}
+a{color:var(--burgundy)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;z-index:10;background-color:var(--burgundy);background-image:var(--grain);color:var(--cream);border-bottom:4px solid var(--beige);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:74px;padding-top:8px;padding-bottom:8px}
+.brand{text-decoration:none;color:var(--cream);font-family:var(--display);font-size:1.7rem;line-height:1}
+.brand small{display:block;font:700 .6rem var(--sans);letter-spacing:.22em;color:var(--beige);margin-top:5px}
+.brand img{height:56px;display:block}
+nav{display:flex;gap:2px}
+nav a{color:var(--beige);text-decoration:none;font:700 .82rem var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:10px 12px;border-bottom:3px solid transparent}
+nav a.on{color:#fff;border-color:var(--beige)}
+.hero{background-color:var(--burgundy);background-image:linear-gradient(rgba(30,8,12,.35),rgba(30,8,12,.75)),var(--grain),repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 160px,rgba(0,0,0,.08) 160px 320px);background-size:cover;background-position:center;color:var(--cream);text-align:center;padding:110px 0 100px;border-bottom:4px solid var(--beige)}
+.hero h1{color:var(--cream);font-size:clamp(2.2rem,7vw,4rem);text-shadow:0 3px 0 rgba(0,0,0,.4)}
+.hero p{font-style:italic;font-size:1.15rem;max-width:34em;margin:0 auto 1.6em}
+.eyebrow{font:700 .78rem var(--sans);letter-spacing:.3em;text-transform:uppercase;color:var(--beige)}
+.btn{display:inline-block;background:var(--beige);color:var(--burgundy);padding:12px 26px;border:2px solid var(--walnut);border-radius:4px;box-shadow:0 4px 0 var(--walnut);font:700 .85rem var(--sans);letter-spacing:.1em;text-transform:uppercase;text-decoration:none;cursor:pointer;margin:4px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--walnut)}
+.sec{padding:60px 0}
+.band{background-color:var(--beige);background-image:var(--paper);border-top:3px dashed var(--walnut);border-bottom:3px dashed var(--walnut)}
+.narrow{max-width:46rem;margin:0 auto;text-align:center}
+.rule{width:90px;height:3px;background:var(--walnut);margin:0 auto 22px;border:0}
+.pagehead{background-color:var(--burgundy);background-image:var(--grain);color:var(--cream);text-align:center;padding:52px 0 40px;border-bottom:4px solid var(--beige)}
+.pagehead h1{color:var(--cream);margin:0;font-size:clamp(1.9rem,5vw,3rem)}
+.pagehead p{margin:.6em auto 0;font-style:italic;color:var(--beige)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px}
+.card{display:block;position:relative;background-color:var(--cream);background-image:var(--paper);border:2px solid var(--beige);border-radius:6px;overflow:hidden;box-shadow:0 6px 16px rgba(60,30,15,.18);text-decoration:none;color:var(--ink)}
+.card .ph{height:170px;background-color:var(--walnut);background-image:var(--grain);background-size:cover;background-position:center;display:flex;align-items:flex-end;border-bottom:4px solid var(--walnut)}
+.card .ph span{color:var(--cream);font:700 .72rem var(--sans);letter-spacing:.2em;text-transform:uppercase;padding:12px 16px;text-shadow:0 2px 4px #000}
+.card .tx{padding:16px 18px 20px}.card h3{font-size:1.25rem;margin:0 0 .3em}
+.meta{font:.85rem var(--sans);color:var(--walnut)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:30px}
+.chips a{border:2px solid var(--walnut);border-radius:4px;padding:6px 16px;font:700 .78rem var(--sans);letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--walnut)}
+.chips a.on{background:var(--burgundy);border-color:var(--burgundy);color:var(--cream)}
+.empty{text-align:center;font-style:italic;color:var(--walnut);padding:30px 10px;border:2px dashed var(--walnut);border-radius:6px;background:rgba(233,217,191,.35)}
+.about{display:grid;gap:28px;align-items:start}.about.two{grid-template-columns:1fr 1fr}
+.about img,.rimg{width:100%;border-radius:6px;border:3px solid var(--beige);box-shadow:0 6px 16px rgba(60,30,15,.25)}
+.recipe{max-width:860px;margin:0 auto}
+.facts{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 28px}
+.facts div{flex:1 1 120px;background:var(--beige);border:2px dashed var(--walnut);border-radius:6px;padding:10px 14px;text-align:center}
+.facts b{display:block;font:700 .7rem var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--walnut)}
+.recipe h2{font-size:1.4rem;border-bottom:2px solid var(--beige);padding-bottom:6px;margin-top:1.6em}
+.recipe li{margin:.5em 0}.tip{background:var(--beige);border-left:5px solid var(--burgundy);padding:14px 18px;border-radius:4px}
+.post{background:var(--cream);border:2px solid var(--beige);border-radius:6px;padding:22px;margin-bottom:22px;box-shadow:0 4px 12px rgba(60,30,15,.12)}
+.post img{max-width:100%;border-radius:6px;margin:10px 0}.post h2{margin-bottom:.2em}
+footer{background-color:var(--walnut);background-image:var(--grain);color:var(--beige);text-align:center;padding:30px 0 36px;font-size:.9rem;border-top:4px solid var(--beige)}
+.pre{white-space:pre-line}
+@media(max-width:760px){.about.two{grid-template-columns:1fr}.sec{padding:44px 0}.hero{padding:80px 0 70px}header .wrap{flex-wrap:wrap;justify-content:center;min-height:0}nav a{padding:8px 9px;font-size:.7rem;letter-spacing:.06em}}
+@media print{header,footer,.noprint{display:none}body{background:#fff;font-size:12pt}.pagehead{background:#fff;color:#000;border:0}.pagehead h1,.pagehead p{color:#000}.facts div{background:#fff}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" id="brand" href="#/"></a>
+  <nav id="nav" aria-label="Main">
+    <a href="#/" data-k="home">Home</a><a href="#/about" data-k="about">About Us</a><a href="#/recipes" data-k="recipes">Recipes</a><a href="#/news" data-k="news">What’s New</a>
+  </nav>
+</div></header>
+<main id="app"><div class="sec wrap narrow"><p class="empty">Loading…</p></div></main>
+<footer><div class="wrap">© <span id="yr"></span> MH Meats · Manchester</div></footer>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getFirestore,collection,getDocs,doc,getDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+const app=initializeApp({apiKey:"AIzaSyCAx43U8IpvzpwovAIWAlwJ8zI3igosFVY",authDomain:"mh-meats.firebaseapp.com",projectId:"mh-meats",storageBucket:"mh-meats.firebasestorage.app",messagingSenderId:"796511079580",appId:"1:796511079580:web:f0cc6652279db6e971f159"});
+const db=getFirestore(app);
+const $=s=>document.querySelector(s), main=$("#app");
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const img=u=>/^(data:image\/|https:\/\/)/.test(u||"")?u:"";
+const lines=t=>String(t||"").split("\n").map(x=>x.trim()).filter(Boolean);
+const ABOUT="MH Meats is a kosher butcher shop based in Manchester, dedicated to bringing our community delicious, quality meats. We believe great meals start with great ingredients, and we’re passionate about helping our customers enjoy tasty food around the family table.";
+let S={},recipes=[],cuts=[],news=[],failed=false;
+const cutName=r=>(cuts.find(c=>c.id===r.cutId)||{}).name||r.cutName||"";
+const byDate=(a,b)=>String(b.date||b.createdAt||"").localeCompare(String(a.date||a.createdAt||""));
+
+async function load(){
+  try{
+    const [s,r,c,n]=await Promise.all([getDoc(doc(db,"settings","site")),getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news"))]);
+    S=s.exists()?s.data():{};
+    recipes=r.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.published!==false).sort(byDate);
+    cuts=c.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0)||String(a.name).localeCompare(String(b.name)));
+    news=n.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.published!==false).sort(byDate);
+  }catch(e){console.error(e);failed=true}
+  const col=S.colors||{};
+  for(const k of ["burgundy","beige","walnut","cream"]) if(/^#[0-9a-f]{3,8}$/i.test(col[k]||"")) document.documentElement.style.setProperty("--"+k,col[k]);
+  $("#brand").innerHTML=img(S.logo)?`<img src="${img(S.logo)}" alt="MH Meats">`:`MH Meats<small>KOSHER BUTCHER SHOP · MANCHESTER</small>`;
+}
+const card=r=>`<a class="card" href="#/recipe/${esc(r.id)}"><div class="ph" style="${img(r.photo)?`background-image:url('${img(r.photo)}')`:""}"><span>${esc(cutName(r))}</span></div><div class="tx"><h3>${esc(r.title)}</h3><div class="meta">${[r.prepTime&&"Prep "+esc(r.prepTime),r.cookTime&&"Cook "+esc(r.cookTime),r.servings&&"Serves "+esc(r.servings)].filter(Boolean).join(" · ")}</div></div></a>`;
+const head=(t,p)=>`<div class="pagehead"><div class="wrap"><h1>${esc(t)}</h1>${p?`<p>${p}</p>`:""}</div></div>`;
+const note=t=>`<p class="empty">${t}</p>`;
+
+function home(){
+  const hero=img(S.heroImage)?`style="background-image:linear-gradient(rgba(30,8,12,.3),rgba(30,8,12,.65)),url('${img(S.heroImage)}')"`:"";
+  return `<section class="hero" ${hero}><div class="wrap"><div class="eyebrow">Kosher butcher shop · Manchester</div><h1>${esc(S.heroTitle||"Welcome to MH Meats")}</h1><p>${esc(S.heroText||"Great meals start with great ingredients.")}</p><a class="btn" href="#/recipes">Browse Recipes</a><a class="btn" href="#/about">About Us</a></div></section>
+  <section class="sec"><div class="wrap narrow"><h2>${esc(S.introTitle||"A warm welcome")}</h2><hr class="rule"><p class="pre">${esc(S.introText||"Welcome to MH Meats, a kosher butcher shop in Manchester. Look around, find inspiration for your next family meal, and see what’s new in the shop.")}</p></div></section>
+  <section class="sec band"><div class="wrap"><h2 style="text-align:center">Latest Recipes</h2><hr class="rule">${recipes.length?`<div class="grid">${recipes.slice(0,3).map(card).join("")}</div>`:note("Recipes are coming soon.")}</div></section>`;
+}
+function about(){
+  const im=img(S.aboutImage);
+  return head(S.aboutTitle||"About Us")+`<section class="sec"><div class="wrap"><div class="about ${im?"two":""}"><p class="pre" style="font-size:1.1rem">${esc(S.aboutText||ABOUT)}</p>${im?`<img src="${im}" alt="">`:""}</div></div></section>`;
+}
+function recipesView(cut){
+  const list=cut?recipes.filter(r=>r.cutId===cut):recipes;
+  const used=cuts.filter(c=>recipes.some(r=>r.cutId===c.id));
+  const chips=used.length?`<div class="chips"><a href="#/recipes" class="${cut?"":"on"}">All</a>${used.map(c=>`<a href="#/cut/${esc(c.id)}" class="${c.id===cut?"on":""}">${esc(c.name)}</a>`).join("")}</div>`:"";
+  const c=cuts.find(x=>x.id===cut);
+  return head(c?c.name:"Recipes",c&&c.description?esc(c.description):"")+`<section class="sec"><div class="wrap">${chips}${failed?note("We couldn’t load recipes just now. Please try again soon."):list.length?`<div class="grid">${list.map(card).join("")}</div>`:note("Recipes are coming soon.")}</div></section>`;
+}
+function recipeView(id){
+  const r=recipes.find(x=>x.id===id);
+  if(!r) return head("Recipe not found")+`<section class="sec"><div class="wrap narrow">${note("We couldn’t find that recipe.")}<p><a class="btn" href="#/recipes">All Recipes</a></p></div></section>`;
+  document.title=r.title+" | MH Meats";
+  const f=[["Prep",r.prepTime],["Cook",r.cookTime],["Serves",r.servings]].filter(x=>x[1]);
+  const ing=lines(r.ingredients),st=lines(r.instructions);
+  return head(r.title,esc(cutName(r)))+`<section class="sec"><div class="wrap recipe">${img(r.photo)?`<img class="rimg" src="${img(r.photo)}" alt="${esc(r.title)}">`:""}
+  ${f.length?`<div class="facts">${f.map(x=>`<div><b>${x[0]}</b>${esc(x[1])}</div>`).join("")}</div>`:""}
+  ${r.intro?`<p class="pre">${esc(r.intro)}</p>`:""}
+  ${ing.length?`<h2>Ingredients</h2><ul>${ing.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>`:""}
+  ${st.length?`<h2>Method</h2><ol>${st.map(i=>`<li>${esc(i)}</li>`).join("")}</ol>`:""}
+  ${r.tips?`<h2>Tips</h2><div class="tip pre">${esc(r.tips)}</div>`:""}
+  <p class="noprint" style="margin-top:30px"><a class="btn" href="#/recipes">← All Recipes</a><button class="btn" onclick="print()">Print</button></p></div></section>`;
+}
+function newsView(){
+  return head("What’s New")+`<section class="sec"><div class="wrap recipe">${failed?note("We couldn’t load the news just now. Please try again soon."):news.length?news.map(n=>`<article class="post"><div class="meta">${esc(n.date||"")}</div><h2>${esc(n.title)}</h2>${img(n.image)?`<img src="${img(n.image)}" alt="">`:""}<p class="pre">${esc(n.body)}</p></article>`).join(""):note("Nothing new just yet. Please check back soon.")}</div></section>`;
+}
+function route(){
+  const p=(location.hash||"#/").replace(/^#\/?/,"").split("/"),k=p[0]||"home";
+  document.title="MH Meats | Kosher Butcher Shop, Manchester";
+  let h;
+  if(k==="about")h=about();else if(k==="recipes")h=recipesView();else if(k==="cut")h=recipesView(decodeURIComponent(p[1]||""));
+  else if(k==="recipe")h=recipeView(decodeURIComponent(p[1]||""));else if(k==="news")h=newsView();else h=home();
+  main.innerHTML=h;
+  const nk=k==="recipe"||k==="cut"?"recipes":k;
+  document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on",a.dataset.k===nk));
+  window.scrollTo(0,0);
+}
+$("#yr").textContent=new Date().getFullYear();
+addEventListener("hashchange",route);
+load().then(route);
+</script>
 </body>
 </html>
