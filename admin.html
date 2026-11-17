@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin | MH Meats</title>
+<style>
+:root{--burgundy:#672B35;--beige:#E9D9BF;--walnut:#694936;--cream:#F8F3E9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:#2E1D17;font:17px/1.5 Georgia,serif;padding-bottom:60px}
+header{background:var(--burgundy);color:var(--cream);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:4px solid var(--beige)}
+header b{font-size:1.2rem}header a,header button{color:var(--beige);background:none;border:0;font:inherit;text-decoration:underline;cursor:pointer;margin-left:12px}
+main{max-width:760px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.tabs button{flex:1 1 auto;padding:12px 10px;border:2px solid var(--walnut);background:#fff;color:var(--walnut);border-radius:8px;font:700 15px sans-serif;cursor:pointer}
+.tabs button.on{background:var(--burgundy);border-color:var(--burgundy);color:#fff}
+h2{color:var(--burgundy);margin:.2em 0 .6em}
+.f{margin:0 0 16px}.f label{display:block;font:700 14px sans-serif;color:var(--walnut);margin-bottom:4px}
+.f small{display:block;color:#7a6a5f;font:13px sans-serif;margin-top:3px}
+input[type=text],input[type=email],input[type=password],input[type=date],select,textarea{width:100%;padding:12px;border:2px solid #cdb995;border-radius:8px;font:16px Georgia,serif;background:#fff}
+textarea{min-height:110px}
+input[type=color]{width:70px;height:46px;border:2px solid #cdb995;border-radius:8px;padding:2px;background:#fff}
+.b{display:inline-block;background:var(--burgundy);color:#fff;border:0;border-radius:8px;padding:13px 20px;font:700 15px sans-serif;cursor:pointer;margin:4px 6px 4px 0}
+.b2{background:#fff;color:var(--burgundy);border:2px solid var(--burgundy)}.bd{background:#fff;color:#a00;border:2px solid #a00}
+.row{background:#fff;border:2px solid var(--beige);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.row .t{font-weight:700}.row .m{font:13px sans-serif;color:#7a6a5f;margin-bottom:6px}
+.pill{font:700 11px sans-serif;border-radius:20px;padding:2px 9px;background:#dfe9d3;color:#2d5a1a;margin-left:6px}.pill.d{background:#eee;color:#666}
+.pv{margin-bottom:8px}.pv img{max-width:100%;max-height:200px;border-radius:8px;border:2px solid var(--beige)}.pv.lg img{background:#7a5a48}
+.toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#2d5a1a;color:#fff;padding:12px 20px;border-radius:30px;font:700 15px sans-serif;z-index:100;max-width:90%}
+.toast.err{background:#a00}
+.hint{background:var(--beige);border-left:5px solid var(--burgundy);padding:10px 14px;border-radius:6px;margin-bottom:16px;font-size:15px}
+#qrmodal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:16px;z-index:50}
+#qrmodal .card{background:#fff;border-radius:12px;padding:18px;max-width:420px;width:100%;text-align:center}
+#qrmodal img{width:100%;border:1px solid #ddd}.url{word-break:break-all;font:13px sans-serif;color:#555;margin:8px 0}
+@media print{body>*:not(#qrmodal){display:none!important}#qrmodal{position:static;background:#fff;display:block!important;padding:0}#qrmodal .card{box-shadow:none;max-width:none}#qrmodal .noprint{display:none}#qrmodal img{max-width:16cm;margin:0 auto;border:0}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<div id="qrmodal"><div class="card"><img id="qrimg" alt="QR code"><div class="url" id="qrurl"></div>
+<div class="noprint"><button class="b" data-act="qrdl">Download PNG</button><button class="b b2" data-act="qrprint">Print</button><button class="b b2" data-act="qrclose">Close</button>
+<div class="hint" style="margin-top:10px;text-align:left">On iPad you can also touch and hold the picture, then tap <b>Save to Photos</b>.</div></div></div></div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getFirestore,collection,getDocs,doc,getDoc,setDoc,deleteDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+const app=initializeApp({apiKey:"AIzaSyCAx43U8IpvzpwovAIWAlwJ8zI3igosFVY",authDomain:"mh-meats.firebaseapp.com",projectId:"mh-meats",storageBucket:"mh-meats.firebasestorage.app",messagingSenderId:"796511079580",appId:"1:796511079580:web:f0cc6652279db6e971f159"});
+const db=getFirestore(app),auth=getAuth(app);
+const $=s=>document.querySelector(s),root=$("#app");
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const slug=t=>String(t).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60)||"item";
+const BASE=new URL("./",location.href).href;
+const DEF={burgundy:"#672B35",beige:"#E9D9BF",walnut:"#694936",cream:"#F8F3E9"};
+let user=null,tab="recipes",D={recipes:[],cuts:[],news:[],site:{}},E=null,imgs={},loginErr="";
+const v=id=>($("#"+id)||{}).value||"";
+
+function toast(t,err){const d=document.createElement("div");d.className="toast"+(err?" err":"");d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),3200)}
+async function loadAll(){
+  const [r,c,n,s]=await Promise.all([getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news")),getDoc(doc(db,"settings","site"))]);
+  D.recipes=r.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.title).localeCompare(b.title));
+  D.cuts=c.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.name).localeCompare(b.name));
+  D.news=n.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+  D.site=s.exists()?s.data():{};
+}
+function fit(file,max,png){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{
+  const s=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);
+  c.getContext("2d").drawImage(i,0,0,c.width,c.height);
+  if(png)return res(c.toDataURL("image/png"));
+  let q=.82,u;do{u=c.toDataURL("image/jpeg",q);q-=.08}while(u.length>330000&&q>.3);res(u)};i.onerror=rej;i.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+const fld=(id,l,val,h)=>`<div class="f"><label for="${id}">${l}</label><input type="text" id="${id}" value="${esc(val)}">${h?`<small>${h}</small>`:""}</div>`;
+const area=(id,l,val,h,rows)=>`<div class="f"><label for="${id}">${l}</label><textarea id="${id}" ${rows?`style="min-height:${rows*28}px"`:""}>${esc(val)}</textarea>${h?`<small>${h}</small>`:""}</div>`;
+const imgf=(id,l,max,png)=>`<div class="f"><label>${l}</label><div class="pv ${png?"lg":""}" id="pv_${id}">${imgs[id]?`<img src="${imgs[id]}">`:"<em>No photo yet</em>"}</div><input type="file" accept="image/*" data-img="${id}" data-max="${max}" ${png?'data-png="1"':""}><br><button class="b b2" data-act="rmimg" data-id="${id}">Remove photo</button></div>`;
+
+function login(){root.innerHTML=`<header><b>MH Meats · Admin</b></header><main><h2>Sign in</h2>${loginErr?`<div class="hint" style="border-color:#a00">${esc(loginErr)}</div>`:""}
+<div class="f"><label for="em">Email</label><input type="email" id="em" autocomplete="username"></div><div class="f"><label for="pw">Password</label><input type="password" id="pw" autocomplete="current-password"></div><button class="b" data-act="login">Sign in</button></main>`}
+
+function render(){
+  if(!user)return login();
+  const T=[["recipes","Recipes"],["cuts","Meat cuts"],["news","What’s New"],["site","Site"]];
+  let body="";
+  if(E)body=E.type==="recipe"?recipeForm():E.type==="cut"?cutForm():E.type==="news"?newsForm():"";
+  else body=tab==="recipes"?recipeList():tab==="cuts"?cutList():tab==="news"?newsList():siteForm();
+  root.innerHTML=`<header><b>MH Meats · Admin</b><span><a href="${BASE}" target="_blank">View website</a><button data-act="logout">Sign out</button></span></header>
+  <main><div class="tabs">${T.map(t=>`<button data-act="tab" data-t="${t[0]}" class="${tab===t[0]&&!E?"on":""}">${t[1]}</button>`).join("")}</div>${body}</main>`;
+}
+const cutOf=r=>(D.cuts.find(c=>c.id===r.cutId)||{}).name||r.cutName||"No cut chosen";
+function recipeList(){return `<h2>Recipes</h2>${D.cuts.length?"":`<div class="hint">Tip: first add your meat cuts in the <b>Meat cuts</b> tab, so you can pick one for each recipe.</div>`}<button class="b" data-act="new" data-type="recipe">+ New recipe</button>
+${D.recipes.length?D.recipes.map(r=>`<div class="row"><div class="t">${esc(r.title)}<span class="pill ${r.published===false?"d":""}">${r.published===false?"Draft":"Published"}</span></div><div class="m">${esc(cutOf(r))}</div>
+<button class="b b2" data-act="edit" data-type="recipe" data-id="${esc(r.id)}">Edit</button><button class="b b2" data-act="qr" data-u="recipe/${esc(r.id)}" data-t="${esc(r.title)}">QR code</button><a class="b b2" style="text-decoration:none" target="_blank" href="${BASE}#/recipe/${encodeURIComponent(r.id)}">View</a></div>`).join(""):`<p><em>No recipes yet.</em></p>`}`}
+function recipeForm(){const r=E.item;return `<h2>${E.isNew?"New recipe":"Edit recipe"}</h2>${fld("title","Recipe title",r.title)}
+<div class="f"><label for="cut">Meat cut</label><select id="cut"><option value="">— none —</option>${D.cuts.map(c=>`<option value="${esc(c.id)}" ${c.id===r.cutId?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div>
+${imgf("photo","Photograph",1200)}${area("intro","Short introduction (optional)",r.intro,"",3)}${fld("prepTime","Preparation time",r.prepTime,"For example: 20 minutes")}${fld("cookTime","Cooking time",r.cookTime)}${fld("servings","Servings",r.servings)}
+${area("ingredients","Ingredients",r.ingredients,"Type one ingredient per line.",6)}${area("instructions","Instructions",r.instructions,"Type one step per line.",8)}${area("tips","Tips (optional)",r.tips,"",3)}
+<div class="f"><label><input type="checkbox" id="pub" ${r.published===false?"":"checked"}> Published (show on the website)</label></div>
+${E.isNew?`<div class="hint">The web address of this recipe will be made from its title, and then never changes, so QR codes keep working.</div>`:""}
+<button class="b" data-act="save">Save</button><button class="b b2" data-act="cancel">Cancel</button>${E.isNew?"":`<button class="b bd" data-act="del">Delete</button>`}`}
+function cutList(){return `<h2>Meat cuts</h2><button class="b" data-act="new" data-type="cut">+ New meat cut</button>${D.cuts.length?D.cuts.map(c=>`<div class="row"><div class="t">${esc(c.name)}</div><div class="m">${D.recipes.filter(r=>r.cutId===c.id).length} recipe(s)</div>
+<button class="b b2" data-act="edit" data-type="cut" data-id="${esc(c.id)}">Edit</button><button class="b b2" data-act="qr" data-u="cut/${esc(c.id)}" data-t="${esc(c.name)}">QR code</button></div>`).join(""):`<p><em>No meat cuts yet.</em></p>`}`}
+function cutForm(){const c=E.item;return `<h2>${E.isNew?"New meat cut":"Edit meat cut"}</h2>${fld("name","Name of the cut",c.name)}${area("description","Short description (optional)",c.description,"",3)}
+<button class="b" data-act="save">Save</button><button class="b b2" data-act="cancel">Cancel</button>${E.isNew?"":`<button class="b bd" data-act="del">Delete</button>`}`}
+function newsList(){return `<h2>What’s New</h2><button class="b" data-act="new" data-type="news">+ New post</button>${D.news.length?D.news.map(n=>`<div class="row"><div class="t">${esc(n.title)}<span class="pill ${n.published===false?"d":""}">${n.published===false?"Draft":"Published"}</span></div><div class="m">${esc(n.date||"")}</div><button class="b b2" data-act="edit" data-type="news" data-id="${esc(n.id)}">Edit</button></div>`).join(""):`<p><em>No posts yet.</em></p>`}`}
+function newsForm(){const n=E.item;return `<h2>${E.isNew?"New post":"Edit post"}</h2>${fld("title","Title",n.title)}<div class="f"><label for="date">Date</label><input type="date" id="date" value="${esc(n.date)}"></div>${area("body","Message",n.body,"",8)}${imgf("image","Photograph (optional)",1000)}
+<div class="f"><label><input type="checkbox" id="pub" ${n.published===false?"":"checked"}> Published (show on the website)</label></div>
+<button class="b" data-act="save">Save</button><button class="b b2" data-act="cancel">Cancel</button>${E.isNew?"":`<button class="b bd" data-act="del">Delete</button>`}`}
+function siteForm(){const s=D.site,c=s.colors||{};imgs={hero:s.heroImage||"",logo:s.logo||"",about:s.aboutImage||""};
+return `<h2>Site</h2><div class="hint">Anything you leave empty uses the standard wording.</div>
+${fld("heroTitle","Home page main heading",s.heroTitle,"Standard: Welcome to MH Meats")}${fld("heroText","Home page line under the heading",s.heroText)}${imgf("hero","Home page hero photo",1400)}
+${fld("introTitle","Welcome heading",s.introTitle)}${area("introText","Welcome message",s.introText,"",5)}
+${fld("aboutTitle","About Us heading",s.aboutTitle)}${area("aboutText","About Us text",s.aboutText,"Leave empty to keep the standard About Us text.",8)}${imgf("about","About Us photo (optional)",1000)}
+${imgf("logo","Logo (optional, replaces the name in the header)",360,true)}
+<h2>Colours</h2>${["burgundy","beige","walnut","cream"].map(k=>`<div class="f"><label for="c_${k}">${k[0].toUpperCase()+k.slice(1)}</label><input type="color" id="c_${k}" value="${c[k]||DEF[k]}"></div>`).join("")}
+<button class="b" data-act="save">Save site settings</button><button class="b b2" data-act="resetcol">Reset colours</button>`}
+
+function drawQR(title,url){
+  const q=qrcode(0,"M");q.addData(url);q.make();const n=q.getModuleCount(),cell=Math.floor(740/n),off=Math.floor((900-cell*n)/2);
+  const c=document.createElement("canvas");c.width=900;c.height=1060;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,900,1060);x.fillStyle="#000";
+  for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(q.isDark(r,k))x.fillRect(off+k*cell,off+r*cell,cell,cell);
+  x.textAlign="center";x.fillStyle="#672B35";
+  const fit1=(t,w,px,wt)=>{let s=px;do{x.font=`${wt} ${s}px Georgia,serif`;s-=2}while(x.measureText(t).width>w&&s>14)};
+  fit1(title,820,56,"bold");x.fillText(title,450,940);
+  x.fillStyle="#333";fit1("Scan for the full recipe · MH Meats",820,32,"normal");x.fillText("Scan for the full recipe · MH Meats",450,990);
+  x.fillStyle="#777";const short=url.replace("https://","");fit1(short,820,24,"normal");x.fillText(short,450,1032);
+  return c;
+}
+let qrName="qr";
+function showQR(path,title){
+  if(typeof qrcode==="undefined"){toast("QR tool did not load. Check your internet and try again.",true);return}
+  const url=BASE+"#/"+path;qrName="QR-"+slug(title)+".png";
+  $("#qrimg").src=drawQR(title,url).toDataURL("image/png");$("#qrurl").textContent=url;$("#qrmodal").style.display="flex";
+}
+function blank(type){return type==="recipe"?{title:"",cutId:"",photo:"",intro:"",prepTime:"",cookTime:"",servings:"",ingredients:"",instructions:"",tips:"",published:true}:type==="cut"?{name:"",description:""}:{title:"",date:new Date().toISOString().slice(0,10),body:"",image:"",published:true}}
+const COL={recipe:"recipes",cut:"cuts",news:"news"};
+async function save(){
+  try{
+    if(tab==="site"&&!E){
+      const o={heroTitle:v("heroTitle").trim(),heroText:v("heroText").trim(),introTitle:v("introTitle").trim(),introText:v("introText").trim(),aboutTitle:v("aboutTitle").trim(),aboutText:v("aboutText").trim(),heroImage:imgs.hero||"",aboutImage:imgs.about||"",logo:imgs.logo||"",colors:{}};
+      for(const k of Object.keys(DEF))o.colors[k]=v("c_"+k);
+      await setDoc(doc(db,"settings","site"),o);D.site=o;toast("Saved");return;
+    }
+    const t=E.type;let o;
+    if(t==="recipe"){const title=v("title").trim();if(!title)return toast("Please type a title.",true);
+      const cutId=v("cut");o={...E.item,title,cutId,cutName:(D.cuts.find(c=>c.id===cutId)||{}).name||"",photo:imgs.photo||"",intro:v("intro"),prepTime:v("prepTime").trim(),cookTime:v("cookTime").trim(),servings:v("servings").trim(),ingredients:v("ingredients"),instructions:v("instructions"),tips:v("tips"),published:$("#pub").checked};
+      if(E.isNew)o.createdAt=new Date().toISOString();}
+    else if(t==="cut"){const name=v("name").trim();if(!name)return toast("Please type a name.",true);o={...E.item,name,description:v("description")};}
+    else{const title=v("title").trim();if(!title)return toast("Please type a title.",true);o={...E.item,title,date:v("date"),body:v("body"),image:imgs.image||"",published:$("#pub").checked};}
+    delete o.id;let id=E.item.id;
+    if(E.isNew){const base=t==="news"?"post-"+Date.now():slug(o.title||o.name);id=base;let n=2;while(D[COL[t]].some(x=>x.id===id))id=base+"-"+n++;}
+    await setDoc(doc(db,COL[t],id),o);
+    const arr=D[COL[t]],i=arr.findIndex(x=>x.id===id),it={id,...o};i<0?arr.push(it):arr[i]=it;
+    if(t==="cut")D.recipes.forEach(r=>{if(r.cutId===id)r.cutName=o.name});
+    toast("Saved");E=null;imgs={};await loadAll();render();
+  }catch(e){console.error(e);toast("Could not save. "+(e.code==="permission-denied"?"You may not be signed in correctly.":"Try a smaller photo, then try again."),true)}
+}
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;
+  if(a==="login"){try{await signInWithEmailAndPassword(auth,v("em").trim(),v("pw"));loginErr=""}catch(x){loginErr="That email or password isn’t right. Please try again.";login()}}
+  else if(a==="logout"){await signOut(auth)}
+  else if(a==="tab"){tab=b.dataset.t;E=null;imgs={};render()}
+  else if(a==="new"){E={type:b.dataset.type,item:blank(b.dataset.type),isNew:true};imgs={};render();scrollTo(0,0)}
+  else if(a==="edit"){const t=b.dataset.type,it=D[COL[t]].find(x=>x.id===b.dataset.id);E={type:t,item:{...it},isNew:false};imgs={photo:it.photo||"",image:it.image||""};render();scrollTo(0,0)}
+  else if(a==="cancel"){E=null;imgs={};render()}
+  else if(a==="save")save();
+  else if(a==="del"){if(!confirm("Delete this permanently? Any printed QR code for it will stop working."))return;try{await deleteDoc(doc(db,COL[E.type],E.item.id));E=null;await loadAll();render();toast("Deleted")}catch(x){toast("Could not delete.",true)}}
+  else if(a==="rmimg"){imgs[b.dataset.id]="";$("#pv_"+b.dataset.id).innerHTML="<em>No photo yet</em>"}
+  else if(a==="resetcol"){for(const k of Object.keys(DEF))$("#c_"+k).value=DEF[k]}
+  else if(a==="qr")showQR(b.dataset.u,b.dataset.t);
+  else if(a==="qrclose")$("#qrmodal").style.display="none";
+  else if(a==="qrprint")print();
+  else if(a==="qrdl"){const l=document.createElement("a");l.href=$("#qrimg").src;l.download=qrName;l.click()}
+});
+document.addEventListener("change",async e=>{
+  const i=e.target.closest("[data-img]");if(!i||!i.files[0])return;
+  try{const id=i.dataset.img;imgs[id]=await fit(i.files[0],+i.dataset.max,!!i.dataset.png);$("#pv_"+id).innerHTML=`<img src="${imgs[id]}">`}catch(x){toast("That photo could not be read.",true)}
+});
+onAuthStateChanged(auth,async u=>{user=u;if(u){try{await loadAll()}catch(x){toast("Could not load your content.",true)}}render()});
+render();
+</script>
+</body>
+</html>
