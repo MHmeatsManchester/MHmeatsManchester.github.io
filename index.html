@@ -59,6 +59,10 @@ nav a.on{color:#fff;border-color:var(--beige)}
 .post{background:var(--cream);border:2px solid var(--beige);border-radius:6px;padding:22px;margin-bottom:22px;box-shadow:0 4px 12px rgba(60,30,15,.12)}
 .post img{max-width:100%;border-radius:6px;margin:10px 0}.post h2{margin-bottom:.2em}
 footer{background-color:var(--walnut);background-image:var(--grain);color:var(--beige);text-align:center;padding:30px 0 36px;font-size:.9rem;border-top:4px solid var(--beige)}
+.team .ph{height:240px}
+.contact{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px;text-align:left;background:var(--beige);border:2px dashed var(--walnut);border-radius:6px;padding:22px}
+.contact b{display:block;font:700 .72rem var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--walnut);margin-bottom:6px}
+.contact ul{list-style:none;margin:0;padding:0}.contact p{margin:0 0 .4em}
 .pre{white-space:pre-line}
 @media(max-width:760px){.about.two{grid-template-columns:1fr}.sec{padding:44px 0}.hero{padding:80px 0 70px}header .wrap{flex-wrap:wrap;justify-content:center;min-height:0}nav a{padding:8px 9px;font-size:.7rem;letter-spacing:.06em}}
 @media print{header,footer,.noprint{display:none}body{background:#fff;font-size:12pt}.pagehead{background:#fff;color:#000;border:0}.pagehead h1,.pagehead p{color:#000}.facts div{background:#fff}}
@@ -84,17 +88,18 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const img=u=>/^(data:image\/|https:\/\/)/.test(u||"")?u:"";
 const lines=t=>String(t||"").split("\n").map(x=>x.trim()).filter(Boolean);
 const ABOUT="MH Meats is a kosher butcher shop based in Manchester, dedicated to bringing our community delicious, quality meats. We believe great meals start with great ingredients, and we’re passionate about helping our customers enjoy tasty food around the family table.";
-let S={},recipes=[],cuts=[],news=[],failed=false;
+let S={},recipes=[],cuts=[],news=[],team=[],failed=false;
 const cutName=r=>(cuts.find(c=>c.id===r.cutId)||{}).name||r.cutName||"";
 const byDate=(a,b)=>String(b.date||b.createdAt||"").localeCompare(String(a.date||a.createdAt||""));
 
 async function load(){
   try{
-    const [s,r,c,n]=await Promise.all([getDoc(doc(db,"settings","site")),getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news"))]);
+    const [s,r,c,n,t]=await Promise.all([getDoc(doc(db,"settings","site")),getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news")),getDocs(collection(db,"team"))]);
     S=s.exists()?s.data():{};
     recipes=r.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.published!==false).sort(byDate);
     cuts=c.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0)||String(a.name).localeCompare(String(b.name)));
     news=n.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.published!==false).sort(byDate);
+    team=t.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0)||String(a.name).localeCompare(String(b.name)));
   }catch(e){console.error(e);failed=true}
   const col=S.colors||{};
   for(const k of ["burgundy","beige","walnut","cream"]) if(/^#[0-9a-f]{3,8}$/i.test(col[k]||"")) document.documentElement.style.setProperty("--"+k,col[k]);
@@ -104,15 +109,19 @@ const card=r=>`<a class="card" href="#/recipe/${esc(r.id)}"><div class="ph" styl
 const head=(t,p)=>`<div class="pagehead"><div class="wrap"><h1>${esc(t)}</h1>${p?`<p>${p}</p>`:""}</div></div>`;
 const note=t=>`<p class="empty">${t}</p>`;
 
+const contact=()=>{const a=(S.address||"").trim(),h=lines(S.hours),p=(S.phone||"").trim(),m=(S.email||"").trim();if(!a&&!h.length&&!p&&!m)return"";
+  return `<div class="contact">${a?`<div><b>Address</b><p class="pre"><a href="https://www.google.com/maps/search/?api=1&amp;query=${encodeURIComponent(a.replace(/\n/g," "))}" target="_blank" rel="noopener">${esc(a)}</a></p></div>`:""}${h.length?`<div><b>Opening times</b><ul>${h.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}${p||m?`<div><b>Contact</b>${p?`<p><a href="tel:${esc(p.replace(/[^+\d]/g,""))}">${esc(p)}</a></p>`:""}${m?`<p><a href="mailto:${esc(m)}">${esc(m)}</a></p>`:""}</div>`:""}</div>`};
+const visit=()=>contact()?`<section class="sec"><div class="wrap narrow"><h2>Visit Us</h2><hr class="rule">${contact()}</div></section>`:"";
+const teamSec=()=>team.length?`<section class="sec band"><div class="wrap"><h2 style="text-align:center">Meet the Team</h2><hr class="rule"><div class="grid team">${team.map(m=>`<div class="card"><div class="ph" style="${img(m.photo)?`background-image:url('${img(m.photo)}')`:""}"></div><div class="tx"><h3>${esc(m.name)}</h3>${m.role?`<div class="meta">${esc(m.role)}</div>`:""}${m.bio?`<p class="pre">${esc(m.bio)}</p>`:""}</div></div>`).join("")}</div></div></section>`:"";
 function home(){
   const hero=img(S.heroImage)?`style="background-image:linear-gradient(rgba(30,8,12,.3),rgba(30,8,12,.65)),url('${img(S.heroImage)}')"`:"";
   return `<section class="hero" ${hero}><div class="wrap"><div class="eyebrow">Kosher butcher shop · Manchester</div><h1>${esc(S.heroTitle||"Welcome to MH Meats")}</h1><p>${esc(S.heroText||"Great meals start with great ingredients.")}</p><a class="btn" href="#/recipes">Browse Recipes</a><a class="btn" href="#/about">About Us</a></div></section>
   <section class="sec"><div class="wrap narrow"><h2>${esc(S.introTitle||"A warm welcome")}</h2><hr class="rule"><p class="pre">${esc(S.introText||"Welcome to MH Meats, a kosher butcher shop in Manchester. Look around, find inspiration for your next family meal, and see what’s new in the shop.")}</p></div></section>
-  <section class="sec band"><div class="wrap"><h2 style="text-align:center">Latest Recipes</h2><hr class="rule">${recipes.length?`<div class="grid">${recipes.slice(0,3).map(card).join("")}</div>`:note("Recipes are coming soon.")}</div></section>`;
+  <section class="sec band"><div class="wrap"><h2 style="text-align:center">Latest Recipes</h2><hr class="rule">${recipes.length?`<div class="grid">${recipes.slice(0,3).map(card).join("")}</div>`:note("Recipes are coming soon.")}</div></section>${visit()}`;
 }
 function about(){
   const im=img(S.aboutImage);
-  return head(S.aboutTitle||"About Us")+`<section class="sec"><div class="wrap"><div class="about ${im?"two":""}"><p class="pre" style="font-size:1.1rem">${esc(S.aboutText||ABOUT)}</p>${im?`<img src="${im}" alt="">`:""}</div></div></section>`;
+  return head(S.aboutTitle||"About Us")+`<section class="sec"><div class="wrap"><div class="about ${im?"two":""}"><p class="pre" style="font-size:1.1rem">${esc(S.aboutText||ABOUT)}</p>${im?`<img src="${im}" alt="">`:""}</div></div></section>${teamSec()}${visit()}`;
 }
 function recipesView(cut){
   const list=cut?recipes.filter(r=>r.cutId===cut):recipes;
