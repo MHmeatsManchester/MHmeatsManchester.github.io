@@ -21,7 +21,7 @@ header{position:sticky;top:0;z-index:10;background-color:var(--burgundy);backgro
 header .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:74px;padding-top:8px;padding-bottom:8px}
 .brand{text-decoration:none;color:var(--cream);font-family:var(--display);font-size:1.7rem;line-height:1}
 .brand small{display:block;font:700 .6rem var(--sans);letter-spacing:.22em;color:var(--beige);margin-top:5px}
-.brand img{height:56px;display:block}
+.brand img{height:76px;display:block}
 nav{display:flex;gap:2px}
 nav a{color:var(--beige);text-decoration:none;font:700 .82rem var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:10px 12px;border-bottom:3px solid transparent}
 nav a.on{color:#fff;border-color:var(--beige)}
@@ -66,7 +66,7 @@ footer{background-color:var(--walnut);background-image:var(--grain);color:var(--
 .order{background-color:var(--burgundy);background-image:var(--grain);color:var(--cream);text-align:center;border-top:4px solid var(--beige);border-bottom:4px solid var(--beige)}
 .order h2{color:var(--cream)}.order .rule{background:var(--beige)}.order .btn{font-size:1.1rem;padding:16px 34px;margin-top:10px}
 .pre{white-space:pre-line}
-@media(max-width:760px){.about.two{grid-template-columns:1fr}.sec{padding:44px 0}.hero{padding:80px 0 70px}header .wrap{flex-wrap:wrap;justify-content:center;min-height:0}nav a{padding:8px 9px;font-size:.7rem;letter-spacing:.06em}}
+@media(max-width:760px){header{position:static}.brand img{height:100px}.about.two{grid-template-columns:1fr}.sec{padding:44px 0}.hero{padding:80px 0 70px}header .wrap{flex-wrap:wrap;justify-content:center;min-height:0}nav a{padding:8px 9px;font-size:.7rem;letter-spacing:.06em}}
 @media print{header,footer,.noprint{display:none}body{background:#fff;font-size:12pt}.pagehead{background:#fff;color:#000;border:0}.pagehead h1,.pagehead p{color:#000}.facts div{background:#fff}}
 </style>
 </head>
@@ -121,7 +121,7 @@ const ordShow=()=>{const n=ordTel();return /^0161\d{7}$/.test(n)?n.slice(0,4)+" 
 const orderSec=()=>`<section class="sec order"><div class="wrap narrow"><h2>${esc(S.orderTitle||"Make an Order")}</h2><hr class="rule"><p class="pre">${esc(S.orderText||"To place an order, give us a call.")}</p><a class="btn" href="tel:${esc(ordTel())}">Call ${esc(ordShow())}</a></div></section>`;
 function home(){
   const hero=img(S.heroImage)?`style="background-image:linear-gradient(rgba(30,8,12,.3),rgba(30,8,12,.65)),url('${img(S.heroImage)}')"`:"";
-  return `<section class="hero" ${hero}><div class="wrap"><div class="eyebrow">Kosher butcher shop · Manchester</div><h1>${esc(S.heroTitle||"Welcome to MH Meats")}</h1><p>${esc(S.heroText||"Great meals start with great ingredients.")}</p><a class="btn" href="#/recipes">Browse Recipes</a><a class="btn" href="#/about">About Us</a><a class="btn" href="tel:${esc(ordTel())}">Order by Phone</a></div></section>
+  return `<section class="hero" ${hero}><div class="wrap"><div class="eyebrow" style="margin-bottom:24px">Kosher butcher shop · Manchester</div>${S.heroTitle?`<h1>${esc(S.heroTitle)}</h1>`:""}${S.heroText?`<p>${esc(S.heroText)}</p>`:""}<a class="btn" href="#/recipes">Browse Recipes</a><a class="btn" href="#/about">About Us</a><a class="btn" href="tel:${esc(ordTel())}">Order by Phone</a></div></section>
   <section class="sec"><div class="wrap narrow"><h2>${esc(S.introTitle||"A warm welcome")}</h2><hr class="rule"><p class="pre">${esc(S.introText||"Welcome to MH Meats, a kosher butcher shop in Manchester. Look around, find inspiration for your next family meal, and see what’s new in the shop.")}</p></div></section>
   ${orderSec()}
   <section class="sec band"><div class="wrap"><h2 style="text-align:center">Latest Recipes</h2><hr class="rule">${recipes.length?`<div class="grid">${recipes.slice(0,3).map(card).join("")}</div>`:note("Recipes are coming soon.")}</div></section>${visit()}`;

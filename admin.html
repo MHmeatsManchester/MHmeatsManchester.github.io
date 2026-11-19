@@ -111,7 +111,7 @@ function teamForm(){const m=E.item;return `<h2>${E.isNew?"New team member":"Edit
 <button class="b" data-act="save">Save</button><button class="b b2" data-act="cancel">Cancel</button>${E.isNew?"":`<button class="b bd" data-act="del">Delete</button>`}`}
 function siteForm(){const s=D.site,c=s.colors||{};imgs={hero:s.heroImage||"",logo:s.logo||"",about:s.aboutImage||""};
 return `<h2>Site</h2><div class="hint">Anything you leave empty uses the standard wording.</div>
-${fld("heroTitle","Home page main heading",s.heroTitle,"Standard: Welcome to MH Meats")}${fld("heroText","Home page line under the heading",s.heroText)}${imgf("hero","Home page hero photo",1400)}
+${fld("heroTitle","Home page main heading",s.heroTitle,"Leave empty to show no heading on the Home page hero.")}${fld("heroText","Home page line under the heading",s.heroText,"Leave empty to show no line.")}${imgf("hero","Home page hero photo",1400)}
 ${fld("introTitle","Welcome heading",s.introTitle)}${area("introText","Welcome message",s.introText,"",5)}
 ${fld("aboutTitle","About Us heading",s.aboutTitle)}${area("aboutText","About Us text",s.aboutText,"Leave empty to keep the standard About Us text.",8)}${imgf("about","About Us photo (optional)",1000)}
 <h2>Opening times &amp; contact</h2>${area("address","Address",s.address,"Shown on the website only if you fill it in.",3)}${area("hours","Opening times",s.hours,"One line per day, for example: Monday: 9am to 5pm",7)}${fld("phone","Phone number",s.phone)}${fld("email","Email address",s.email)}
