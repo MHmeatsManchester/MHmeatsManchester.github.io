@@ -54,24 +54,26 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const slug=t=>String(t).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60)||"item";
 const BASE=new URL("./",location.href).href;
 const DEF={burgundy:"#672B35",beige:"#E9D9BF",walnut:"#694936",cream:"#F8F3E9"};
-let user=null,tab="recipes",D={recipes:[],cuts:[],collections:[],news:[],team:[],site:{}},E=null,imgs={},loginErr="";
+let user=null,tab="recipes",D={recipes:[],cuts:[],collections:[],hero:[],news:[],team:[],site:{}},E=null,imgs={},loginErr="";
 const v=id=>($("#"+id)||{}).value||"";
 
 function toast(t,err){const d=document.createElement("div");d.className="toast"+(err?" err":"");d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),3200)}
 async function loadAll(){
-  const [r,c,n,s,tm,cl]=await Promise.all([getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news")),getDoc(doc(db,"settings","site")),getDocs(collection(db,"team")),getDocs(collection(db,"collections"))]);
+  const [r,c,n,s,tm,cl,hr]=await Promise.all([getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news")),getDoc(doc(db,"settings","site")),getDocs(collection(db,"team")),getDocs(collection(db,"collections")),getDocs(collection(db,"hero"))]);
   D.recipes=r.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.title).localeCompare(b.title));
   D.cuts=c.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.name).localeCompare(b.name));
   D.news=n.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
   D.team=tm.docs.map(d=>({id:d.id,...d.data()})).sort((x,y)=>(x.order||0)-(y.order||0)||String(x.name).localeCompare(y.name));
   D.collections=cl.docs.map(x=>({id:x.id,...x.data()})).sort((p,q)=>String(p.name).localeCompare(q.name));
+  D.hero=hr.docs.map(x=>({id:x.id,...x.data()})).sort(ordr);
   D.site=s.exists()?s.data():{};
 }
-function fit(file,max,png){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{
+const ordr=(a,b)=>(a.order||0)-(b.order||0);
+function fit(file,max,png,lim){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{
   const s=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);
   c.getContext("2d").drawImage(i,0,0,c.width,c.height);
   if(png)return res(c.toDataURL("image/png"));
-  let q=.82,u;do{u=c.toDataURL("image/jpeg",q);q-=.08}while(u.length>330000&&q>.3);res(u)};i.onerror=rej;i.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+  let q=.82,u;do{u=c.toDataURL("image/jpeg",q);q-=.08}while(u.length>(lim||330000)&&q>.3);res(u)};i.onerror=rej;i.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
 const fld=(id,l,val,h)=>`<div class="f"><label for="${id}">${l}</label><input type="text" id="${id}" value="${esc(val)}">${h?`<small>${h}</small>`:""}</div>`;
 const area=(id,l,val,h,rows)=>`<div class="f"><label for="${id}">${l}</label><textarea id="${id}" ${rows?`style="min-height:${rows*28}px"`:""}>${esc(val)}</textarea>${h?`<small>${h}</small>`:""}</div>`;
 const imgf=(id,l,max,png)=>`<div class="f"><label>${l}</label><div class="pv ${png?"lg":""}" id="pv_${id}">${imgs[id]?`<img src="${imgs[id]}">`:"<em>No photo yet</em>"}</div><input type="file" accept="image/*" data-img="${id}" data-max="${max}" ${png?'data-png="1"':""}><br><button class="b b2" data-act="rmimg" data-id="${id}">Remove photo</button></div>`;
@@ -116,9 +118,13 @@ function collForm(){const c=E.item;return `<h2>${E.isNew?"New collection":"Edit 
 function teamList(){return `<h2>Meet the Team</h2><div class="hint">Only add people who are happy to appear on the website.</div><button class="b" data-act="new" data-type="team">+ New team member</button>${D.team.length?D.team.map(m=>`<div class="row"><div class="t">${esc(m.name)}</div><div class="m">${esc(m.role||"")}</div><button class="b b2" data-act="edit" data-type="team" data-id="${esc(m.id)}">Edit</button></div>`).join(""):`<p><em>No team members yet.</em></p>`}`}
 function teamForm(){const m=E.item;return `<h2>${E.isNew?"New team member":"Edit team member"}</h2>${fld("name","Name",m.name)}${fld("role","Role (optional)",m.role,"For example: your own job title")}${imgf("photo","Photograph (optional)",800)}${area("bio","A few words about them (optional)",m.bio,"",4)}${fld("order","Position in the list (optional)",m.order,"1 shows first, 2 second, and so on.")}
 <button class="b" data-act="save">Save</button><button class="b b2" data-act="cancel">Cancel</button>${E.isNew?"":`<button class="b bd" data-act="del">Delete</button>`}`}
+function heroList(){const L=[...D.hero].sort(ordr);
+  return (L.length?L.map((h,i)=>`<div class="row"><div class="pv"><img src="${h.image}" style="max-height:100px"></div><div class="m">Photo ${i+1} of ${L.length}</div>
+<button class="b b2" data-act="heromv" data-id="${esc(h.id)}" data-d="-1">← Earlier</button><button class="b b2" data-act="heromv" data-id="${esc(h.id)}" data-d="1">Later →</button><button class="b bd" data-act="herodel" data-id="${esc(h.id)}">Remove</button></div>`).join(""):"<p><em>No slideshow photos yet.</em></p>")
+  +(!L.length&&D.site.heroImage?`<button class="b b2" data-act="heromigrate">Add my current hero photo to the slideshow</button>`:"");}
 function siteForm(){const s=D.site,c=s.colors||{};imgs={hero:s.heroImage||"",logo:s.logo||"",about:s.aboutImage||""};
 return `<h2>Site</h2><div class="hint">Anything you leave empty uses the standard wording.</div>
-${fld("heroTitle","Home page main heading",s.heroTitle,"Leave empty to show no heading on the Home page hero.")}${fld("heroText","Home page line under the heading",s.heroText,"Leave empty to show no line.")}${imgf("hero","Home page hero photo",1400)}
+${fld("heroTitle","Home page main heading",s.heroTitle,"Leave empty to show no heading on the Home page hero.")}${fld("heroText","Home page line under the heading",s.heroText,"Leave empty to show no line.")}<div class="f"><label>Home page hero photos (slideshow)</label><div class="hint">Add up to 6 photos. With two or more, they change automatically on the Home page. Photos here save straight away, without pressing Save.</div><div id="heroList">${heroList()}</div><input type="file" accept="image/*" data-hero="1"></div>
 ${fld("introTitle","Welcome heading",s.introTitle)}${area("introText","Welcome message",s.introText,"",5)}
 ${fld("aboutTitle","About Us heading",s.aboutTitle)}${area("aboutText","About Us text",s.aboutText,"Leave empty to keep the standard About Us text.",8)}${imgf("about","About Us photo (optional)",1000)}
 <h2>Opening times &amp; contact</h2>${area("address","Address",s.address,"Shown on the website only if you fill it in.",3)}${area("hours","Opening times",s.hours,"One line per day, for example: Monday: 9am to 5pm",7)}${fld("phone","Phone number",s.phone)}${fld("email","Email address",s.email)}
@@ -173,6 +179,10 @@ document.addEventListener("click",async e=>{
   const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;
   if(a==="login"){try{await signInWithEmailAndPassword(auth,v("em").trim(),v("pw"));loginErr=""}catch(x){loginErr="That email or password isn’t right. Please try again.";login()}}
   else if(a==="logout"){await signOut(auth)}
+  else if(a==="herodel"){if(!confirm("Remove this photo from the slideshow?"))return;try{await deleteDoc(doc(db,"hero",b.dataset.id));D.hero=D.hero.filter(x=>x.id!==b.dataset.id);$("#heroList").innerHTML=heroList()}catch(x){toast("Could not remove it.",true)}}
+  else if(a==="heromv"){const L=[...D.hero].sort(ordr);L.forEach((x,k)=>x.order=k+1);const i=L.findIndex(x=>x.id===b.dataset.id),j=i+ +b.dataset.d;if(i<0||j<0||j>=L.length)return;
+    const t=L[i].order;L[i].order=L[j].order;L[j].order=t;try{await setDoc(doc(db,"hero",L[i].id),{order:L[i].order},{merge:true});await setDoc(doc(db,"hero",L[j].id),{order:L[j].order},{merge:true});D.hero=L.sort(ordr);$("#heroList").innerHTML=heroList()}catch(x){toast("Could not move it.",true)}}
+  else if(a==="heromigrate"){try{const id="slide-"+Date.now(),o={image:D.site.heroImage,order:1};await setDoc(doc(db,"hero",id),o);D.hero.push({id,...o});$("#heroList").innerHTML=heroList();toast("Added")}catch(x){toast("Could not add it.",true)}}
   else if(a==="seedquick"){try{await setDoc(doc(db,"collections","quick-easy-supper-ideas"),{name:"Quick & Easy Supper Ideas",description:""});await loadAll();render();toast("Added")}catch(x){toast("Could not add it.",true)}}
   else if(a==="tab"){tab=b.dataset.t;E=null;imgs={};render()}
   else if(a==="new"){E={type:b.dataset.type,item:blank(b.dataset.type),isNew:true};imgs={};render();scrollTo(0,0)}
@@ -188,6 +198,10 @@ document.addEventListener("click",async e=>{
   else if(a==="qrdl"){const l=document.createElement("a");l.href=$("#qrimg").src;l.download=qrName;l.click()}
 });
 document.addEventListener("change",async e=>{
+  const hi=e.target.closest("[data-hero]");
+  if(hi&&hi.files[0]){if(D.hero.length>=6){toast("You can have up to 6 photos.",true);hi.value="";return}
+    try{const u=await fit(hi.files[0],1280,false,200000),id="slide-"+Date.now(),o={image:u,order:Math.max(0,...D.hero.map(x=>x.order||0))+1};await setDoc(doc(db,"hero",id),o);D.hero.push({id,...o});$("#heroList").innerHTML=heroList();toast("Photo added")}catch(x){toast("Could not add that photo.",true)}
+    hi.value="";return}
   const i=e.target.closest("[data-img]");if(!i||!i.files[0])return;
   try{const id=i.dataset.img;imgs[id]=await fit(i.files[0],+i.dataset.max,!!i.dataset.png);$("#pv_"+id).innerHTML=`<img src="${imgs[id]}">`}catch(x){toast("That photo could not be read.",true)}
 });
