@@ -141,7 +141,9 @@ function recipesView(kind,id){
   const rowK=uk.length?`<div class="cl">Browse by idea</div><div class="chips" style="margin-bottom:16px">${all}${uk.map(c=>chip("#/collection/"+esc(c.id),c.name,kind==="coll"&&c.id===id)).join("")}</div>`:"";
   const rowC=uc.length?`<div class="cl">Browse by meat cut</div><div class="chips">${uk.length?"":all}${uc.map(c=>chip("#/cut/"+esc(c.id),c.name,kind==="cut"&&c.id===id)).join("")}</div>`:"";
   const cur=kind==="cut"?cuts.find(x=>x.id===id):kind==="coll"?colls.find(x=>x.id===id):null;
-  return head(cur?cur.name:"Recipes",cur&&cur.description?esc(cur.description):"")+`<section class="sec"><div class="wrap">${rowK}${rowC}${failed?note("We couldn’t load recipes just now. Please try again soon."):list.length?`<div class="grid">${list.map(card).join("")}</div>`:note("Recipes are coming soon.")}</div></section>`;
+  const back=kind?`<p style="text-align:center;margin:0 0 26px"><a class="btn" href="#/recipes">← All Recipes</a></p>`:"";
+  const body=failed?note("We couldn’t load recipes just now. Please try again soon."):list.length?`<div class="grid">${list.map(card).join("")}</div>`:note(kind?"No recipes here yet.":"Recipes are coming soon.");
+  return head(cur?cur.name:"Recipes",cur&&cur.description?esc(cur.description):"")+`<section class="sec"><div class="wrap">${kind?back+body+`<p style="text-align:center;margin:30px 0 0"><a class="btn" href="#/recipes">← All Recipes</a></p>`:rowK+rowC+body}</div></section>`;
 }
 function recipeView(id){
   const r=recipes.find(x=>x.id===id);
