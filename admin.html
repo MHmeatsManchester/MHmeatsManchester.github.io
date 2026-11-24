@@ -16,7 +16,7 @@ main{max-width:760px;margin:0 auto;padding:16px}
 .tabs button{flex:1 1 auto;padding:12px 10px;border:2px solid var(--walnut);background:#fff;color:var(--walnut);border-radius:8px;font:700 15px sans-serif;cursor:pointer}
 .tabs button.on{background:var(--burgundy);border-color:var(--burgundy);color:#fff}
 h2{color:var(--burgundy);margin:.2em 0 .6em}
-.f{margin:0 0 16px}.f label{display:block;font:700 14px sans-serif;color:var(--walnut);margin-bottom:4px}
+.f{margin:0 0 16px}.f label.ck{font:16px Georgia,serif;color:#2E1D17;margin:8px 0}.f label{display:block;font:700 14px sans-serif;color:var(--walnut);margin-bottom:4px}
 .f small{display:block;color:#7a6a5f;font:13px sans-serif;margin-top:3px}
 input[type=text],input[type=email],input[type=password],input[type=date],select,textarea{width:100%;padding:12px;border:2px solid #cdb995;border-radius:8px;font:16px Georgia,serif;background:#fff}
 textarea{min-height:110px}
@@ -54,16 +54,17 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const slug=t=>String(t).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60)||"item";
 const BASE=new URL("./",location.href).href;
 const DEF={burgundy:"#672B35",beige:"#E9D9BF",walnut:"#694936",cream:"#F8F3E9"};
-let user=null,tab="recipes",D={recipes:[],cuts:[],news:[],team:[],site:{}},E=null,imgs={},loginErr="";
+let user=null,tab="recipes",D={recipes:[],cuts:[],collections:[],news:[],team:[],site:{}},E=null,imgs={},loginErr="";
 const v=id=>($("#"+id)||{}).value||"";
 
 function toast(t,err){const d=document.createElement("div");d.className="toast"+(err?" err":"");d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),3200)}
 async function loadAll(){
-  const [r,c,n,s,tm]=await Promise.all([getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news")),getDoc(doc(db,"settings","site")),getDocs(collection(db,"team"))]);
+  const [r,c,n,s,tm,cl]=await Promise.all([getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news")),getDoc(doc(db,"settings","site")),getDocs(collection(db,"team")),getDocs(collection(db,"collections"))]);
   D.recipes=r.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.title).localeCompare(b.title));
   D.cuts=c.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.name).localeCompare(b.name));
   D.news=n.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
   D.team=tm.docs.map(d=>({id:d.id,...d.data()})).sort((x,y)=>(x.order||0)-(y.order||0)||String(x.name).localeCompare(y.name));
+  D.collections=cl.docs.map(x=>({id:x.id,...x.data()})).sort((p,q)=>String(p.name).localeCompare(q.name));
   D.site=s.exists()?s.data():{};
 }
 function fit(file,max,png){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{
@@ -80,10 +81,10 @@ function login(){root.innerHTML=`<header><b>MH Meats · Admin</b></header><main>
 
 function render(){
   if(!user)return login();
-  const T=[["recipes","Recipes"],["cuts","Meat cuts"],["news","What’s New"],["team","Team"],["site","Site"]];
+  const T=[["recipes","Recipes"],["cuts","Meat cuts"],["colls","Collections"],["news","What’s New"],["team","Team"],["site","Site"]];
   let body="";
-  if(E)body=E.type==="recipe"?recipeForm():E.type==="cut"?cutForm():E.type==="news"?newsForm():E.type==="team"?teamForm():"";
-  else body=tab==="recipes"?recipeList():tab==="cuts"?cutList():tab==="news"?newsList():tab==="team"?teamList():siteForm();
+  if(E)body=E.type==="recipe"?recipeForm():E.type==="cut"?cutForm():E.type==="news"?newsForm():E.type==="team"?teamForm():E.type==="coll"?collForm():"";
+  else body=tab==="recipes"?recipeList():tab==="cuts"?cutList():tab==="colls"?collList():tab==="news"?newsList():tab==="team"?teamList():siteForm();
   root.innerHTML=`<header><b>MH Meats · Admin</b><span><a href="${BASE}" target="_blank">View website</a><button data-act="logout">Sign out</button></span></header>
   <main><div class="tabs">${T.map(t=>`<button data-act="tab" data-t="${t[0]}" class="${tab===t[0]&&!E?"on":""}">${t[1]}</button>`).join("")}</div>${body}</main>`;
 }
@@ -93,6 +94,7 @@ ${D.recipes.length?D.recipes.map(r=>`<div class="row"><div class="t">${esc(r.tit
 <button class="b b2" data-act="edit" data-type="recipe" data-id="${esc(r.id)}">Edit</button><button class="b b2" data-act="qr" data-u="recipe/${esc(r.id)}" data-t="${esc(r.title)}">QR code</button><a class="b b2" style="text-decoration:none" target="_blank" href="${BASE}#/recipe/${encodeURIComponent(r.id)}">View</a></div>`).join(""):`<p><em>No recipes yet.</em></p>`}`}
 function recipeForm(){const r=E.item;return `<h2>${E.isNew?"New recipe":"Edit recipe"}</h2>${fld("title","Recipe title",r.title)}
 <div class="f"><label for="cut">Meat cut</label><select id="cut"><option value="">— none —</option>${D.cuts.map(c=>`<option value="${esc(c.id)}" ${c.id===r.cutId?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div>
+<div class="f"><label>Collections (tick all that apply)</label>${D.collections.length?D.collections.map(c=>`<label class="ck"><input type="checkbox" name="coll" value="${esc(c.id)}" ${(r.collectionIds||[]).includes(c.id)?"checked":""}> ${esc(c.name)}</label>`).join(""):"<small>No collections yet. Add them in the Collections tab, for example Quick &amp; Easy Supper Ideas.</small>"}</div>
 ${imgf("photo","Photograph",1200)}${area("intro","Short introduction (optional)",r.intro,"",3)}${fld("prepTime","Preparation time",r.prepTime,"For example: 20 minutes")}${fld("cookTime","Cooking time",r.cookTime)}${fld("servings","Servings",r.servings)}
 ${area("ingredients","Ingredients",r.ingredients,"Type one ingredient per line.",6)}${area("instructions","Instructions",r.instructions,"Type one step per line.",8)}${area("tips","Tips (optional)",r.tips,"",3)}
 <div class="f"><label><input type="checkbox" id="pub" ${r.published===false?"":"checked"}> Published (show on the website)</label></div>
@@ -105,6 +107,11 @@ function cutForm(){const c=E.item;return `<h2>${E.isNew?"New meat cut":"Edit mea
 function newsList(){return `<h2>What’s New</h2><button class="b" data-act="new" data-type="news">+ New post</button>${D.news.length?D.news.map(n=>`<div class="row"><div class="t">${esc(n.title)}<span class="pill ${n.published===false?"d":""}">${n.published===false?"Draft":"Published"}</span></div><div class="m">${esc(n.date||"")}</div><button class="b b2" data-act="edit" data-type="news" data-id="${esc(n.id)}">Edit</button></div>`).join(""):`<p><em>No posts yet.</em></p>`}`}
 function newsForm(){const n=E.item;return `<h2>${E.isNew?"New post":"Edit post"}</h2>${fld("title","Title",n.title)}<div class="f"><label for="date">Date</label><input type="date" id="date" value="${esc(n.date)}"></div>${area("body","Message",n.body,"",8)}${imgf("image","Photograph (optional)",1000)}
 <div class="f"><label><input type="checkbox" id="pub" ${n.published===false?"":"checked"}> Published (show on the website)</label></div>
+<button class="b" data-act="save">Save</button><button class="b b2" data-act="cancel">Cancel</button>${E.isNew?"":`<button class="b bd" data-act="del">Delete</button>`}`}
+function collList(){const has=D.collections.some(c=>c.id==="quick-easy-supper-ideas");return `<h2>Collections</h2><div class="hint">Collections let one recipe appear in more than one group, as well as under its meat cut. For example, a chicken schnitzel recipe can also be in <b>Quick &amp; Easy Supper Ideas</b>. Tick a collection when you edit a recipe.</div>
+${has?"":`<button class="b" data-act="seedquick">+ Add “Quick &amp; Easy Supper Ideas”</button>`}<button class="b b2" data-act="new" data-type="coll">+ New collection</button>${D.collections.length?D.collections.map(c=>`<div class="row"><div class="t">${esc(c.name)}</div><div class="m">${D.recipes.filter(r=>(r.collectionIds||[]).includes(c.id)).length} recipe(s)</div>
+<button class="b b2" data-act="edit" data-type="coll" data-id="${esc(c.id)}">Edit</button><button class="b b2" data-act="qr" data-u="collection/${esc(c.id)}" data-t="${esc(c.name)}">QR code</button></div>`).join(""):`<p><em>No collections yet.</em></p>`}`}
+function collForm(){const c=E.item;return `<h2>${E.isNew?"New collection":"Edit collection"}</h2>${fld("name","Name of the collection",c.name,"For example: Quick &amp; Easy Supper Ideas")}${area("description","Short description (optional)",c.description,"",3)}
 <button class="b" data-act="save">Save</button><button class="b b2" data-act="cancel">Cancel</button>${E.isNew?"":`<button class="b bd" data-act="del">Delete</button>`}`}
 function teamList(){return `<h2>Meet the Team</h2><div class="hint">Only add people who are happy to appear on the website.</div><button class="b" data-act="new" data-type="team">+ New team member</button>${D.team.length?D.team.map(m=>`<div class="row"><div class="t">${esc(m.name)}</div><div class="m">${esc(m.role||"")}</div><button class="b b2" data-act="edit" data-type="team" data-id="${esc(m.id)}">Edit</button></div>`).join(""):`<p><em>No team members yet.</em></p>`}`}
 function teamForm(){const m=E.item;return `<h2>${E.isNew?"New team member":"Edit team member"}</h2>${fld("name","Name",m.name)}${fld("role","Role (optional)",m.role,"For example: your own job title")}${imgf("photo","Photograph (optional)",800)}${area("bio","A few words about them (optional)",m.bio,"",4)}${fld("order","Position in the list (optional)",m.order,"1 shows first, 2 second, and so on.")}
@@ -137,8 +144,8 @@ function showQR(path,title){
   const url=BASE+"#/"+path;qrName="QR-"+slug(title)+".png";
   $("#qrimg").src=drawQR(title,url).toDataURL("image/png");$("#qrurl").textContent=url;$("#qrmodal").style.display="flex";
 }
-function blank(type){return type==="recipe"?{title:"",cutId:"",photo:"",intro:"",prepTime:"",cookTime:"",servings:"",ingredients:"",instructions:"",tips:"",published:true}:type==="cut"?{name:"",description:""}:type==="team"?{name:"",role:"",bio:"",photo:"",order:""}:{title:"",date:new Date().toISOString().slice(0,10),body:"",image:"",published:true}}
-const COL={recipe:"recipes",cut:"cuts",news:"news",team:"team"};
+function blank(type){return type==="recipe"?{title:"",cutId:"",photo:"",intro:"",prepTime:"",cookTime:"",servings:"",ingredients:"",instructions:"",tips:"",published:true}:type==="cut"?{name:"",description:""}:type==="coll"?{name:"",description:""}:type==="team"?{name:"",role:"",bio:"",photo:"",order:""}:{title:"",date:new Date().toISOString().slice(0,10),body:"",image:"",published:true}}
+const COL={recipe:"recipes",cut:"cuts",coll:"collections",news:"news",team:"team"};
 async function save(){
   try{
     if(tab==="site"&&!E){
@@ -148,9 +155,10 @@ async function save(){
     }
     const t=E.type;let o;
     if(t==="recipe"){const title=v("title").trim();if(!title)return toast("Please type a title.",true);
-      const cutId=v("cut");o={...E.item,title,cutId,cutName:(D.cuts.find(c=>c.id===cutId)||{}).name||"",photo:imgs.photo||"",intro:v("intro"),prepTime:v("prepTime").trim(),cookTime:v("cookTime").trim(),servings:v("servings").trim(),ingredients:v("ingredients"),instructions:v("instructions"),tips:v("tips"),published:$("#pub").checked};
+      const cutId=v("cut");o={...E.item,title,cutId,cutName:(D.cuts.find(c=>c.id===cutId)||{}).name||"",collectionIds:[...document.querySelectorAll("input[name=coll]:checked")].map(x=>x.value),photo:imgs.photo||"",intro:v("intro"),prepTime:v("prepTime").trim(),cookTime:v("cookTime").trim(),servings:v("servings").trim(),ingredients:v("ingredients"),instructions:v("instructions"),tips:v("tips"),published:$("#pub").checked};
       if(E.isNew)o.createdAt=new Date().toISOString();}
     else if(t==="cut"){const name=v("name").trim();if(!name)return toast("Please type a name.",true);o={...E.item,name,description:v("description")};}
+    else if(t==="coll"){const name=v("name").trim();if(!name)return toast("Please type a name.",true);o={...E.item,name,description:v("description")};}
     else if(t==="team"){const name=v("name").trim();if(!name)return toast("Please type a name.",true);o={...E.item,name,role:v("role").trim(),bio:v("bio"),photo:imgs.photo||"",order:Number(v("order"))||0};}
     else{const title=v("title").trim();if(!title)return toast("Please type a title.",true);o={...E.item,title,date:v("date"),body:v("body"),image:imgs.image||"",published:$("#pub").checked};}
     delete o.id;let id=E.item.id;
@@ -165,6 +173,7 @@ document.addEventListener("click",async e=>{
   const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;
   if(a==="login"){try{await signInWithEmailAndPassword(auth,v("em").trim(),v("pw"));loginErr=""}catch(x){loginErr="That email or password isn’t right. Please try again.";login()}}
   else if(a==="logout"){await signOut(auth)}
+  else if(a==="seedquick"){try{await setDoc(doc(db,"collections","quick-easy-supper-ideas"),{name:"Quick & Easy Supper Ideas",description:""});await loadAll();render();toast("Added")}catch(x){toast("Could not add it.",true)}}
   else if(a==="tab"){tab=b.dataset.t;E=null;imgs={};render()}
   else if(a==="new"){E={type:b.dataset.type,item:blank(b.dataset.type),isNew:true};imgs={};render();scrollTo(0,0)}
   else if(a==="edit"){const t=b.dataset.type,it=D[COL[t]].find(x=>x.id===b.dataset.id);E={type:t,item:{...it},isNew:false};imgs={photo:it.photo||"",image:it.image||""};render();scrollTo(0,0)}

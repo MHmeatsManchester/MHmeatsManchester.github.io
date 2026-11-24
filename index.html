@@ -65,6 +65,7 @@ footer{background-color:var(--walnut);background-image:var(--grain);color:var(--
 .contact ul{list-style:none;margin:0;padding:0}.contact p{margin:0 0 .4em}
 .order{background-color:var(--burgundy);background-image:var(--grain);color:var(--cream);text-align:center;border-top:4px solid var(--beige);border-bottom:4px solid var(--beige)}
 .order h2{color:var(--cream)}.order .rule{background:var(--beige)}.order .btn{font-size:1.1rem;padding:16px 34px;margin-top:10px}
+.cl{font:700 .72rem var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--walnut);text-align:center;margin:0 0 8px}
 .pre{white-space:pre-line}
 @media(max-width:760px){header{position:static}.brand img{height:100px}.about.two{grid-template-columns:1fr}.sec{padding:44px 0}.hero{padding:80px 0 70px}header .wrap{flex-wrap:wrap;justify-content:center;min-height:0}nav a{padding:8px 9px;font-size:.7rem;letter-spacing:.06em}}
 @media print{header,footer,.noprint{display:none}body{background:#fff;font-size:12pt}.pagehead{background:#fff;color:#000;border:0}.pagehead h1,.pagehead p{color:#000}.facts div{background:#fff}}
@@ -90,17 +91,18 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const img=u=>/^(data:image\/|https:\/\/)/.test(u||"")?u:"";
 const lines=t=>String(t||"").split("\n").map(x=>x.trim()).filter(Boolean);
 const ABOUT="MH Meats is a kosher butcher shop based in Manchester, dedicated to bringing our community delicious, quality meats. We believe great meals start with great ingredients, and we’re passionate about helping our customers enjoy tasty food around the family table.";
-let S={},recipes=[],cuts=[],news=[],team=[],failed=false;
+let S={},recipes=[],cuts=[],colls=[],news=[],team=[],failed=false;
 const cutName=r=>(cuts.find(c=>c.id===r.cutId)||{}).name||r.cutName||"";
 const byDate=(a,b)=>String(b.date||b.createdAt||"").localeCompare(String(a.date||a.createdAt||""));
 
 async function load(){
   try{
-    const [s,r,c,n,t]=await Promise.all([getDoc(doc(db,"settings","site")),getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news")),getDocs(collection(db,"team"))]);
+    const [s,r,c,n,t,k]=await Promise.all([getDoc(doc(db,"settings","site")),getDocs(collection(db,"recipes")),getDocs(collection(db,"cuts")),getDocs(collection(db,"news")),getDocs(collection(db,"team")),getDocs(collection(db,"collections"))]);
     S=s.exists()?s.data():{};
     recipes=r.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.published!==false).sort(byDate);
     cuts=c.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0)||String(a.name).localeCompare(String(b.name)));
     news=n.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.published!==false).sort(byDate);
+    colls=k.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
     team=t.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0)||String(a.name).localeCompare(String(b.name)));
   }catch(e){console.error(e);failed=true}
   const col=S.colors||{};
@@ -121,7 +123,7 @@ const ordShow=()=>{const n=ordTel();return /^0161\d{7}$/.test(n)?n.slice(0,4)+" 
 const orderSec=()=>`<section class="sec order"><div class="wrap narrow"><h2>${esc(S.orderTitle||"Make an Order")}</h2><hr class="rule"><p class="pre">${esc(S.orderText||"To place an order, give us a call.")}</p><a class="btn" href="tel:${esc(ordTel())}">Call ${esc(ordShow())}</a></div></section>`;
 function home(){
   const hero=img(S.heroImage)?`style="background-image:linear-gradient(rgba(30,8,12,.3),rgba(30,8,12,.65)),url('${img(S.heroImage)}')"`:"";
-  return `<section class="hero" ${hero}><div class="wrap"><div class="eyebrow" style="margin-bottom:24px">Kosher butcher shop · Manchester</div>${S.heroTitle?`<h1>${esc(S.heroTitle)}</h1>`:""}${S.heroText?`<p>${esc(S.heroText)}</p>`:""}<a class="btn" href="#/recipes">Browse Recipes</a><a class="btn" href="#/about">About Us</a><a class="btn" href="tel:${esc(ordTel())}">Order by Phone</a></div></section>
+  return `<section class="hero" ${hero}><div class="wrap"><div class="eyebrow" style="margin-bottom:24px">Kosher butcher shop · Manchester</div>${S.heroTitle?`<h1>${esc(S.heroTitle)}</h1>`:""}${S.heroText?`<p>${esc(S.heroText)}</p>`:""}</div></section>
   <section class="sec"><div class="wrap narrow"><h2>${esc(S.introTitle||"A warm welcome")}</h2><hr class="rule"><p class="pre">${esc(S.introText||"Welcome to MH Meats, a kosher butcher shop in Manchester. Look around, find inspiration for your next family meal, and see what’s new in the shop.")}</p></div></section>
   ${orderSec()}
   <section class="sec band"><div class="wrap"><h2 style="text-align:center">Latest Recipes</h2><hr class="rule">${recipes.length?`<div class="grid">${recipes.slice(0,3).map(card).join("")}</div>`:note("Recipes are coming soon.")}</div></section>${visit()}`;
@@ -130,12 +132,16 @@ function about(){
   const im=img(S.aboutImage);
   return head(S.aboutTitle||"About Us")+`<section class="sec"><div class="wrap"><div class="about ${im?"two":""}"><p class="pre" style="font-size:1.1rem">${esc(S.aboutText||ABOUT)}</p>${im?`<img src="${im}" alt="">`:""}</div></div></section>${teamSec()}${visit()}`;
 }
-function recipesView(cut){
-  const list=cut?recipes.filter(r=>r.cutId===cut):recipes;
-  const used=cuts.filter(c=>recipes.some(r=>r.cutId===c.id));
-  const chips=used.length?`<div class="chips"><a href="#/recipes" class="${cut?"":"on"}">All</a>${used.map(c=>`<a href="#/cut/${esc(c.id)}" class="${c.id===cut?"on":""}">${esc(c.name)}</a>`).join("")}</div>`:"";
-  const c=cuts.find(x=>x.id===cut);
-  return head(c?c.name:"Recipes",c&&c.description?esc(c.description):"")+`<section class="sec"><div class="wrap">${chips}${failed?note("We couldn’t load recipes just now. Please try again soon."):list.length?`<div class="grid">${list.map(card).join("")}</div>`:note("Recipes are coming soon.")}</div></section>`;
+function recipesView(kind,id){
+  const inC=(r,cid)=>Array.isArray(r.collectionIds)&&r.collectionIds.includes(cid);
+  const list=kind==="cut"?recipes.filter(r=>r.cutId===id):kind==="coll"?recipes.filter(r=>inC(r,id)):recipes;
+  const uc=cuts.filter(c=>recipes.some(r=>r.cutId===c.id)),uk=colls.filter(c=>recipes.some(r=>inC(r,c.id)));
+  const chip=(h,t,on)=>`<a href="${h}" class="${on?"on":""}">${esc(t)}</a>`;
+  const all=chip("#/recipes","All",!kind);
+  const rowK=uk.length?`<div class="cl">Browse by idea</div><div class="chips" style="margin-bottom:16px">${all}${uk.map(c=>chip("#/collection/"+esc(c.id),c.name,kind==="coll"&&c.id===id)).join("")}</div>`:"";
+  const rowC=uc.length?`<div class="cl">Browse by meat cut</div><div class="chips">${uk.length?"":all}${uc.map(c=>chip("#/cut/"+esc(c.id),c.name,kind==="cut"&&c.id===id)).join("")}</div>`:"";
+  const cur=kind==="cut"?cuts.find(x=>x.id===id):kind==="coll"?colls.find(x=>x.id===id):null;
+  return head(cur?cur.name:"Recipes",cur&&cur.description?esc(cur.description):"")+`<section class="sec"><div class="wrap">${rowK}${rowC}${failed?note("We couldn’t load recipes just now. Please try again soon."):list.length?`<div class="grid">${list.map(card).join("")}</div>`:note("Recipes are coming soon.")}</div></section>`;
 }
 function recipeView(id){
   const r=recipes.find(x=>x.id===id);
@@ -158,10 +164,10 @@ function route(){
   const p=(location.hash||"#/").replace(/^#\/?/,"").split("/"),k=p[0]||"home";
   document.title="MH Meats | Kosher Butcher Shop, Manchester";
   let h;
-  if(k==="about")h=about();else if(k==="recipes")h=recipesView();else if(k==="cut")h=recipesView(decodeURIComponent(p[1]||""));
+  if(k==="about")h=about();else if(k==="recipes")h=recipesView();else if(k==="cut")h=recipesView("cut",decodeURIComponent(p[1]||""));else if(k==="collection")h=recipesView("coll",decodeURIComponent(p[1]||""));
   else if(k==="recipe")h=recipeView(decodeURIComponent(p[1]||""));else if(k==="news")h=newsView();else h=home();
   main.innerHTML=h;
-  const nk=k==="recipe"||k==="cut"?"recipes":k;
+  const nk=k==="recipe"||k==="cut"||k==="collection"?"recipes":k;
   document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on",a.dataset.k===nk));
   window.scrollTo(0,0);
 }
